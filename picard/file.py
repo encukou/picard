@@ -211,7 +211,17 @@ class File(LockableObject, Item):
 
     def _make_filename(self, filename, metadata, settings):
         """Constructs file name based on metadata and file naming formats."""
-        if settings["move_files"]:
+        move_file = settings["move_files"]
+        if move_file and settings["move_complete_albums_only"]:
+            # Reset the move_file flag if if the album is not complete
+            try:
+                if not self.tagger.load_album(metadata['musicbrainz_albumid']).is_complete():
+                    move_file = False
+            except (IndexError, AttributeError) as e:
+                print e
+                # Something is missing; assume album is not complete
+                move_file = False
+        if move_file:
             new_dirname = settings["move_files_to"]
             if not os.path.isabs(new_dirname):
                 new_dirname = os.path.normpath(os.path.join(os.path.dirname(filename), new_dirname))

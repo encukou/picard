@@ -80,6 +80,7 @@ class RenamingOptionsPage(OptionsPage):
             'file_naming_format': unicode(self.ui.file_naming_format.toPlainText()),
             'va_file_naming_format': unicode(self.ui.va_file_naming_format.toPlainText()),
             'move_files_to': os.path.normpath(unicode(self.config.setting["move_files_to"])),
+            'move_complete_albums_only': self.config.setting["move_complete_albums_only"],
         }
         try:
             if self.config.setting["enable_tagger_script"]:

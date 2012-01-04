@@ -41,6 +41,7 @@ class MovingOptionsPage(OptionsPage):
         BoolOption("setting", "move_additional_files", False),
         TextOption("setting", "move_additional_files_pattern", "*.jpg *.png"),
         BoolOption("setting", "delete_empty_dirs", True),
+        BoolOption("setting", "move_complete_albums_only", False),
     ]
 
     def __init__(self, parent=None):
@@ -58,6 +59,7 @@ class MovingOptionsPage(OptionsPage):
         self.ui.move_additional_files_pattern.setText(self.config.setting["move_additional_files_pattern"])
         self.update_move_additional_files()
         self.ui.delete_empty_dirs.setChecked(self.config.setting["delete_empty_dirs"])
+        self.ui.move_complete_albums_only.setChecked(self.config.setting["move_complete_albums_only"])
 
 
     def check(self):
@@ -70,6 +72,7 @@ class MovingOptionsPage(OptionsPage):
         self.config.setting["move_additional_files"] = self.ui.move_additional_files.isChecked()
         self.config.setting["move_additional_files_pattern"] = unicode(self.ui.move_additional_files_pattern.text())
         self.config.setting["delete_empty_dirs"] = self.ui.delete_empty_dirs.isChecked()
+        self.config.setting["move_complete_albums_only"] = self.ui.move_complete_albums_only.isChecked()
         self.tagger.window.enable_moving_action.setChecked(self.config.setting["move_files"])
 
     def move_files_to_browse(self):
