@@ -197,7 +197,35 @@ class File(LockableObject, Item):
         # make sure every metadata can safely be used in a path name
         for name in metadata.keys():
             if isinstance(metadata[name], basestring):
-                metadata[name] = sanitize_filename(metadata[name])
+                ###
+                # I use '|' to replace '/' and '\'. The replace_win32_incompat
+                # function should change it to something else on windows,
+                # so no woirries there.
+                ###
+                metadata[name] = sanitize_filename(metadata[name], repl='|')
+        ###
+        # Provide a %year% field for target filenames, which is useful for
+        # making albums better ordered, but isn't as distracting as
+        # a full date.
+        metadata["year"] = metadata["date"][:4]
+        # WARNING! The following will make Picard refuse to move any file,
+        # regardless of whether %year% is actually used. Note that metadata
+        # will be saved, only the move won't happen.
+        # It would be good to think about how to do this better.
+        # (For my use case, this behavior is perfect: I don't want albums
+        # without years in my collection)
+        if not (1600 < int(metadata["year"]) < 2200):
+            raise AssertionError("Bad Year")
+        # Adds each disc in a multi-disc release to its own neat subdirectory.
+        # Requires the discnumber.py plugin (does nothing without it).
+        metadata["album_full"] = metadata["album"]
+        if "discnumber" in metadata:
+            if "discsubtitle" in metadata:
+                metadata["album_full"] += "/disc %(discnumber)s - %(discsubtitle)s" % metadata
+            else:
+                metadata["album_full"] += "/disc %(discnumber)s" % metadata
+        #
+        ###
         format = format.replace("\t", "").replace("\n", "")
         filename = ScriptParser().eval(format, metadata, self)
         # replace incompatible characters
