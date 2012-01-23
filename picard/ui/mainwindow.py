@@ -719,7 +719,7 @@ class MainWindow(QtGui.QMainWindow):
                 is_album = True
 
         self.orig_metadata_box.set_metadata(orig_metadata, is_album)
-        self.metadata_box.set_metadata(metadata, is_album, file=file)
+        self.metadata_box.set_metadata(metadata, is_album, obj=obj)
         self.cover_art_box.set_metadata(metadata, obj)
         self.set_statusbar_message(statusBar)
 

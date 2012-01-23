@@ -20,6 +20,8 @@
 
 from PyQt4 import QtCore, QtGui
 from picard.util import format_time
+from picard.album import Album
+from picard.file import File
 
 class MetadataBox(QtGui.QGroupBox):
 
@@ -77,46 +79,62 @@ class MetadataBox(QtGui.QGroupBox):
         self.ui.tracknumber.clear()
         self.ui.date.clear()
 
-    def set_metadata(self, metadata, is_album=False, file=None):
+    def set_metadata(self, metadata, is_album=False, obj=None):
         self.metadata = metadata
-        self.obj = file
+        self.obj = obj
         if metadata:
             if is_album:
-                self.ui.album.setText(metadata['album'])
+                self.setText(self.ui.album, metadata['album'])
                 self.ui.title.clear()
                 self.ui.tracknumber.clear()
             else:
-                self.ui.album.setText(metadata['album'])
-                self.ui.title.setText(metadata['title'])
-                self.ui.tracknumber.setText(metadata['tracknumber'])
-            self.ui.artist.setText(metadata['artist'])
-            self.ui.length.setText(format_time(metadata.length))
-            self.ui.date.setText(metadata['date'])
+                self.setText(self.ui.album, metadata['album'])
+                self.setText(self.ui.title, metadata['title'])
+                self.setText(self.ui.tracknumber, metadata['tracknumber'])
+            self.setText(self.ui.artist, metadata['artist'])
+            self.setText(self.ui.length, format_time(metadata.length))
+            self.setText(self.ui.date, metadata['date'])
             self.enable(is_album)
         else:
             self.clear()
             self.disable()
 
+    def setText(self, textbox, text):
+        """Helper for setting the text of a textbox.
+        If the original text is the same, do nothing
+        """
+        # Needed to avoid the cursor jumping to the end of the box
+        # with every keystroke while editing
+        if textbox.text() != text:
+            textbox.setText(text)
+
     def lookup(self):
         """Tell the tagger to lookup the metadata."""
         self.tagger.lookup(self.metadata)
 
-    def _update_metadata(self, name, text):
-        if self.metadata and self.obj:
+    def _update_metadata(self, name, text, whole_album=False):
+        if self.metadata and isinstance(self.obj, File):
             self.metadata[name] = unicode(text)
             self.obj.update()
+        elif whole_album and self.metadata and isinstance(self.obj, Album):
+            self.metadata[name] = unicode(text)
+            self.obj.update()
+            for track in self.obj.tracks:
+                if len(track.linked_files) == 1:
+                    track.linked_files[0].metadata[name] = unicode(text)
+                    track.linked_files[0].update()
 
     def update_metadata_title(self, text):
         self._update_metadata('title', text)
 
     def update_metadata_album(self, text):
-        self._update_metadata('album', text)
+        self._update_metadata('album', text, True)
 
     def update_metadata_artist(self, text):
-        self._update_metadata('artist', text)
+        self._update_metadata('artist', text, True)
 
     def update_metadata_tracknum(self, text):
         self._update_metadata('tracknumber', text)
 
     def update_metadata_date(self, text):
-        self._update_metadata('date', text)
+        self._update_metadata('date', text, True)
